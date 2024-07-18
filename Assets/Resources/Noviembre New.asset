@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3683cea6fd4de724eac231095131ba10, type: 3}
+  m_Name: Noviembre New
+  m_EditorClassIdentifier: 
+  ColorATable: {fileID: 2100000, guid: 3242137a81c81df48b0762bc80bc30f4, type: 2}
+  ColorBTable: {fileID: 2100000, guid: 408d1084985098d47a9fe90285befa40, type: 2}
+  ColorAPiece: {fileID: 2100000, guid: 96aa1de060690e2499c155e7d13a618b, type: 2}
+  ColorBPiece: {fileID: 2100000, guid: f0e7c63bd77a61348a0aae4e573ee60a, type: 2}
+  ColorBasePiece: {fileID: 2100000, guid: 133d0fc62ebbd9e44b06b7bf16e1f7f2, type: 2}
+  ColorDetailPiece: {fileID: 2100000, guid: 25626ca3f6d80db4e8042ab337a9af15, type: 2}
+  ColorSelected: {fileID: 2100000, guid: 6e06c3be5a85e214c9bf1fb257b6ef07, type: 2}
+  ColorAttacked: {fileID: 2100000, guid: 0d34b89a80628dc45b388f7b47e2abab, type: 2}
+  ColorCellCheckmark: {fileID: 2100000, guid: a9ce21cc6ee3f3f4cac5709a18a6dd09, type: 2}
+  prefabCell: {fileID: 2343731312142569557, guid: 85df3b76956e0b843ac164ca4d7f0e68, type: 3}
+  prefabPieces:
+  - {fileID: 6758372741838158663, guid: a1cd9c832feed07499fd6cff9c08248e, type: 3}
+  - {fileID: 6758372741838158663, guid: a1cd9c832feed07499fd6cff9c08248e, type: 3}
+  - {fileID: 6758372741838158663, guid: a1cd9c832feed07499fd6cff9c08248e, type: 3}
+  - {fileID: 6758372741838158663, guid: a1cd9c832feed07499fd6cff9c08248e, type: 3}
+  - {fileID: 7742408540639110514, guid: b1c2767ab43acb14cac93b0a37bc44ae, type: 3}
+  - {fileID: 7742408540639110514, guid: b1c2767ab43acb14cac93b0a37bc44ae, type: 3}
+  - {fileID: 7742408540639110514, guid: b1c2767ab43acb14cac93b0a37bc44ae, type: 3}
+  - {fileID: 7742408540639110514, guid: b1c2767ab43acb14cac93b0a37bc44ae, type: 3}
+  - {fileID: 3914490700246834975, guid: a05dc2796e2a70b43886a9eeb424f8db, type: 3}
+  - {fileID: 1765748667560754209, guid: fe6bb1ff304c8b34b9fb0e23d32b5e88, type: 3}

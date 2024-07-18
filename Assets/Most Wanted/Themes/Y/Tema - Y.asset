@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3683cea6fd4de724eac231095131ba10, type: 3}
+  m_Name: Tema - Y
+  m_EditorClassIdentifier: 
+  ColorATable: {fileID: 2100000, guid: c4b2e0bb1d5cbfb448c07aabaf053b71, type: 2}
+  ColorBTable: {fileID: 2100000, guid: d0a74c1ef33989645bc0fe7f4ce903c1, type: 2}
+  ColorAPiece: {fileID: 2100000, guid: aa3950a8fb69e2e43aaad0b7c2d34907, type: 2}
+  ColorBPiece: {fileID: 2100000, guid: 201a9aa41e74ec14f84304edc8f2f0f9, type: 2}
+  ColorBasePiece: {fileID: 2100000, guid: 57b760aa304cf6144a75e3c6bebf88b6, type: 2}
+  ColorDetailPiece: {fileID: 2100000, guid: 2a85856407e7d98408fd6771e4f4142c, type: 2}
+  ColorSelected: {fileID: 2100000, guid: 227f3e68c64621b40850be1d6648d85d, type: 2}
+  ColorAttacked: {fileID: 2100000, guid: 93b82e642dc64da49ba9b463e3f3bcc6, type: 2}
+  ColorCellCheckmark: {fileID: 2100000, guid: 52957464e6e9ca8468cfb9d5ec0e2a3e, type: 2}
+  prefabCell: {fileID: 4597535461981020774, guid: 226bca6677ea6534991b545c29938748, type: 3}
+  prefabCheckSelected: {fileID: 1522934002920353647, guid: d17e0f6b26fc95f43bfe1d444ea17751, type: 3}
+  prefabCheckAttacked: {fileID: 3529380270390344415, guid: 1cfaa5c1d558310449d7da26db8e7a21, type: 3}
+  prefabPieces:
+  - {fileID: 7526998723539754086, guid: 4a239294c8de56f4f9ce3d1bd386da85, type: 3}
+  - {fileID: 7526998723539754086, guid: 9c88ae66ce7d8af4a93e23f0e919ba10, type: 3}
+  - {fileID: 7526998723539754086, guid: 7b7d98f63ac1946438509e6f2078aed2, type: 3}
+  - {fileID: 7526998723539754086, guid: 40e7d3755798c4348ba2a119ef541973, type: 3}
+  - {fileID: 7526998723539754086, guid: b9783afe3fb0d1744921651d1b2840ea, type: 3}
+  - {fileID: 7526998723539754086, guid: cd18d14f1ca03204c993a378d012d882, type: 3}
+  - {fileID: 7526998723539754086, guid: 7f2599872912cd345a96916fc8fb093e, type: 3}
+  - {fileID: 7526998723539754086, guid: 05e04ad05a00b774495e1405ba1038ad, type: 3}
+  - {fileID: 7526998723539754086, guid: 16d9395cd77a3de4d810bafa47b7f803, type: 3}
+  - {fileID: 7526998723539754086, guid: 65c3925e030231f4693616872b1671eb, type: 3}

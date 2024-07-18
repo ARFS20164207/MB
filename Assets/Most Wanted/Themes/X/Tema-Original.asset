@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3683cea6fd4de724eac231095131ba10, type: 3}
+  m_Name: Tema-Original
+  m_EditorClassIdentifier: 
+  ColorATable: {fileID: 2100000, guid: f246336675929df4bbd9c55d41293e9c, type: 2}
+  ColorBTable: {fileID: 2100000, guid: bf26105151e8c464099ddef8ba313aec, type: 2}
+  ColorAPiece: {fileID: 2100000, guid: 6f953cb02362e9f4ebdd1dd61b92e9ba, type: 2}
+  ColorBPiece: {fileID: 2100000, guid: 4c0b6796bb57dfb48bbc17177b84a3c9, type: 2}
+  ColorSelected: {fileID: 2100000, guid: 86572c36ab1370d4ba45e8d2468de44c, type: 2}
+  ColorAttacked: {fileID: 2100000, guid: fd58977cfa84c8a4db60c7d1b966e216, type: 2}
+  ColorCellCheckmark: {fileID: 2100000, guid: e57ffa9d15b274b43ab4121d348e8e8e, type: 2}
+  prefabCell: {fileID: 3522026833503196418, guid: aad626ce455cb704b9b644d171ddd131, type: 3}
+  pieces:
+  - {fileID: 1857812806827519424, guid: 6e196d11d51c33c4ab945a3c8089f099, type: 3}
+  - {fileID: 1857812806827519424, guid: 122c728c7bd65e548bb18b9cdfc5e2da, type: 3}
+  - {fileID: 1857812806827519424, guid: ba85d724936c6424a84783546cb27862, type: 3}
+  - {fileID: 1857812806827519424, guid: 886ac7058999f80428e410c10c7237b6, type: 3}
+  - {fileID: 1857812806827519424, guid: df6ed0d0f5cc43549a71eeb1b6bb83a1, type: 3}
+  - {fileID: 1857812806827519424, guid: e0f6e645224999f4ca91f1a2997c65f6, type: 3}
+  - {fileID: 1857812806827519424, guid: dc54471e08abd8f47b0ff932824ee66f, type: 3}
+  - {fileID: 1857812806827519424, guid: 28c92f4109cc74e4c928f5f18b30358f, type: 3}
+  - {fileID: 1857812806827519424, guid: 43cf24251476600488b5e0154e3bc5f7, type: 3}
+  - {fileID: 1857812806827519424, guid: 455c382891f312d4e8fb172b1a6894ec, type: 3}

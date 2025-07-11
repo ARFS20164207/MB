@@ -29,14 +29,22 @@ public class LocalPlayerStats : MonoBehaviour
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
+    public void FixedUpdate()
+    {
+        UIManager.instance.SetCoin(coin1, coin2);
     }
 
     void Start()
     {
         LoadLocalData();
-
+        
         // Verifica si ha pasado un día desde la última vez que se guardó
-        if ((DateTime.Now - ultimaGuarda).Days >= 0)
+        if ((DateTime.Now - ultimaGuarda).Days >= 1)
         {
             // Realiza las operaciones que necesites antes de guardar
             coin1 += 5;
@@ -52,14 +60,32 @@ public class LocalPlayerStats : MonoBehaviour
 
     public void SaveLocalData()
     {
-
-        PlayerPrefs.SetString(claveUltimaGuarda, DateTime.Now.ToString());
+        if(ultimaGuarda == DateTime.MinValue)
+        {
+            ultimaGuarda = DateTime.Now;
+        }else if (DateTime.Now > ultimaGuarda)
+        {
+            PlayerPrefs.SetString(claveUltimaGuarda, DateTime.Now.ToString());
+        }
+        
 
         PlayerPrefs.SetInt(claveCoin1, coin1);
         PlayerPrefs.SetInt(claveCoin2, coin2);
         PlayerPrefs.SetInt(clavewins, wins);
         PlayerPrefs.SetInt(claveloses, loses);
         PlayerPrefs.Save();
+    }
+    public void QuickSave()
+    {
+        PlayerPrefs.SetInt(claveCoin1, coin1);
+        PlayerPrefs.SetInt(claveCoin2, coin2);
+        PlayerPrefs.SetInt(clavewins, wins);
+        PlayerPrefs.SetInt(claveloses, loses);
+        PlayerPrefs.Save();
+    }
+    private void OnApplicationQuit()
+    {
+        QuickSave();
     }
     public void LoadLocalData() 
     {

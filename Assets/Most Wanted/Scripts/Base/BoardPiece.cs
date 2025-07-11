@@ -1,144 +1,83 @@
 using ARFS.Tools;
 using Photon.Pun;
 using System.Collections;
+using Most_Wanted.Scripts.Base;
+using Most_Wanted.Scripts.V2;
 using UnityEngine;
 
 public class BoardPiece : MonoBehaviourPun
 {
 
-    public int CurrentX { get; set; }
-    public int CurrentZ { get; set; }
-    [SerializeField] public bool isFirst;
     [SerializeField] BoardPieceDots visualNumbers;
     public int strengh = 0;
-    [SerializeReference] protected BoardCell _currentCell;
     [SerializeField] BoardRender pieceRenders = null;
 
-    public bool IsChecked = false;
-    public bool IsSelected = false;
     [SerializeField] float velocity = 1f;
-    private bool ismoving = false;
-
+    private bool _ismoving = false;
+    public Cell currentCell;
+    public IPlayer controller;
 
     [ContextMenu("Agregar Elementos")]
     public void SetRendersMaterials()
     {
         pieceRenders = GetComponent<BoardRender>();
     }
+    [ContextMenu("Actualizar Fuerza")]
     public void SetObjectNumeration()
     {
         if (visualNumbers) visualNumbers.SetNumber(strengh);
     }
-    public BoardCell currentCell
+    public void SetObjectNumeration(int newStrengh)
     {
-        get { return _currentCell; }
-        set
-        {
-            _currentCell = value;
-            if (value == null) return;
-            if (value.currentPiece == this) return;
-            _currentCell.currentPiece = this;
-        }
+        strengh = newStrengh;
+        if (visualNumbers) visualNumbers.SetNumber(newStrengh);
     }
-    //select like an option for the player
-    public void SelectPiece()
-    {
-        IsSelected = true;
-        SeleccionActive();
-
-    }
-    public void DiselectPiece()
-    {
-        IsSelected = false;
-        SeleccionActive();
-    }
-    [ContextMenu("ActiveSelected")]
-    private void SeleccionActive() => pieceRenders.SetActiveMaterial(BoardRender.ItemSel.SeleccionColor, IsSelected);
-    private void SeleccionActive(bool enable) => pieceRenders.SetActiveMaterial(BoardRender.ItemSel.SeleccionColor, enable);
-    //this piece is atacked or not
-    public void CheckPiece()
-    {
-        DiselectPiece();
-        pieceRenders.SetActiveMaterial(BoardRender.ItemSel.DangerColor, true);
-    }
+   
     public void UncheckPiece()
     {
         pieceRenders.SetActiveMaterial(BoardRender.ItemSel.DangerColor, false);
     }
-    public void SetPosition(int x, int z)
-    {
-        CurrentX = x;
-        CurrentZ = z;
-    }
-
-    public virtual bool[,] PossibleMoves(BoardCell[,] table)
-    {
-        bool[,] moves = AllMoves(table);
-        for (int i = 0; i < moves.GetLength(0); i++)
-        {
-            for (int j = 0; j < moves.GetLength(1); j++)
-            {
-                BoardCell cell = table[i, j];
-                if (cell.hasPiece)
-                {
-                    moves[i, j] = IsValidCapture(cell);
-                    cell.currentPiece.IsChecked = moves[i, j];
-                }
-                else
-                    moves[i, j] = IsValidMove(cell);
-            }
-        }
-        return moves;
-    }
+ 
     public bool[,] AllMoves<T>(T[,] posibilities)
     {
         bool[,] moves = new bool[posibilities.GetLength(0), posibilities.GetLength(1)];
         return moves;
     }
 
-    public bool MovePiece(BoardCell destination)
+    public bool MovePiece(Cell destination)
     {
-        if (!IsValidMove(destination)) return false;
-        if (ismoving) { return false; }
-
+        if(_ismoving)return false;
         StartCoroutine(MovePieceCo(destination));
         return true;
     }
-    IEnumerator MovePieceCo(BoardCell destination)
+    IEnumerator MovePieceCo(Cell destination)
     {
-        ismoving = true;
-        while (Vector3.Distance(transform.position, destination.transform.position) >= 0.05f)
+        _ismoving = true;
+        Vector3 start = transform.position;
+        float timer = 0f;
+        while (Vector3.Distance(transform.position, destination.position) >= 0.05f)
         {
-            transform.position = Vector3.Lerp(transform.position, destination.transform.position, velocity * Time.deltaTime);
+            timer += Time.deltaTime;
+            transform.position = Vector3.Lerp(start, destination.position, timer/velocity);
             yield return null;
         }
-        currentCell.currentPiece = null;
-        yield return null;
-        if (destination.hasPiece)
-            destination.currentPiece.CapturePiece();
-
-        yield return null;
-        currentCell = destination;
-        currentCell.currentPiece = this;
-        // Change turn
-        BoardGame.instance.ChangeTurn();
-        ismoving = false;
+        _ismoving = false;
     }
     
-    public bool MovePieceUndo(BoardCell destination, BoardPiece oldpiece = null)
+    public bool MovePieceUndo(Cell destination, BoardPiece oldpiece = null)
     {
         //if (!IsValidMove(destination)) return false;
-        if (ismoving) { return false; }
+        if (_ismoving) { return false; }
 
         StartCoroutine(MovePieceCoUndo(destination, oldpiece));
         return true;
     }
-    IEnumerator MovePieceCoUndo(BoardCell destination, BoardPiece oldpiece)
+    IEnumerator MovePieceCoUndo(Cell destination, BoardPiece oldpiece)
     {
-        ismoving = true;
-        while (Vector3.Distance(transform.position, destination.transform.position) >= 0.05f)
+        _ismoving = true;
+        while (Vector3.Distance(transform.position, destination.position) >= 0.05f)
         {
-            transform.position = Vector3.Lerp(transform.position, destination.transform.position, velocity * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, destination.position, velocity * Time.deltaTime);
             yield return null;
         }
 
@@ -148,16 +87,10 @@ public class BoardPiece : MonoBehaviourPun
             oldpiece.ReturnPiece(currentCell);
         else
             currentCell.currentPiece = null;
-
-        yield return null;
-        currentCell = destination;
-        currentCell.currentPiece = this;
-        // Change turn
-        BoardGame.instance.ChangeTurn();
-        ismoving = false;
+        _ismoving = false;
     }
 
-    public virtual void CapturePiece()
+    public void CapturePiece()
     {
         if (currentCell != null)
         {
@@ -166,95 +99,131 @@ public class BoardPiece : MonoBehaviourPun
         }
         gameObject.SetActive(false);
     }
-    public virtual void ReturnPiece(BoardCell lastCell)
+    public void ReturnPiece(Cell lastCell)
     {
         gameObject.SetActive(true);
 
         currentCell = lastCell;
         currentCell.currentPiece = this;
     }
-    public virtual bool IsValidMove(BoardCell targetCell)
+    public bool IsValidMove(Cell targetCell,Cell CurrentCell)
     {
-        int minx = (int)BoardGame.instance.boardSize.x;
-        int miny = (int)BoardGame.instance.boardSize.y;
-        // Verificar si el movimiento es dentro del tablero
-        if (targetCell.x < 0 || targetCell.x >= minx || targetCell.z < 0 || targetCell.z >= miny)
-        {
-            return false;
-        }
-
-        // Verificar si el movimiento es hacia la misma celda
-        if (currentCell.x == targetCell.x && currentCell.z == targetCell.z)
-        {
-            return false;
-        }
-
-        // Verificar si la pieza en la celda destino es del mismo color
+        int minx = (int)9;
+        int miny = (int)7;
+        BoardPiece currentPiece = CurrentCell.currentPiece;
         BoardPiece targetPiece = targetCell.currentPiece;
-        if (targetPiece != null && targetPiece.isFirst == isFirst)
-        {
-            return false;
-        }
-        if (targetPiece != null && targetPiece.isFirst != isFirst)
-        {
-            if (!IsValidCapture(targetCell)) return false;
-        }
-
-        return true;
-    }
-    public virtual bool IsValidPass(BoardCell targetCell)
-    {
-        int minx = (int)BoardGame.instance.boardSize.x;
-        int miny = (int)BoardGame.instance.boardSize.y;
+        
         // Verificar si el movimiento es dentro del tablero
-        if (targetCell.x < 0 || targetCell.x >= minx || targetCell.z < 0 || targetCell.z >= miny)
-        {
+        if (targetCell.x <= 0 || targetCell.x > minx || targetCell.y <= 0 || targetCell.y > miny)
             return false;
-        }
-
+        
         // Verificar si el movimiento es hacia la misma celda
-        if (currentCell.x == targetCell.x && currentCell.z == targetCell.z)
-        {
+        if (currentCell == targetCell)
             return false;
-        }
-
+        
         // Verificar si la pieza en la celda destino es del mismo color
-        BoardPiece targetPiece = BoardGame.instance.board[targetCell.x, targetCell.z].currentPiece;
-        if (targetPiece != null) return false;
-
-
-        return true;
-    }
-    public virtual bool IsValidCapture(BoardCell targetCell)
-    {
-        int minx = (int)BoardGame.instance.boardSize.x;
-        int miny = (int)BoardGame.instance.boardSize.y;
-        // Verificar si el movimiento es dentro del tablero
-        if (targetCell.x < 0 || targetCell.x >= minx || targetCell.z < 0 || targetCell.z >= miny) return false;
-
-        // Verificar si el movimiento es hacia la misma celda
-        if (currentCell.x == targetCell.x && currentCell.z == targetCell.z) return false;
-
-        // 
-        BoardPiece targetPiece = BoardGame.instance.board[targetCell.x, targetCell.z].currentPiece;
-        if (targetPiece == null) return false;
-        if (targetPiece.isFirst == isFirst) return false;
+        if (targetPiece != null && targetPiece.controller == controller)
+            return false;
+       
 
         int xvalue = Mathf.Abs(Mathf.Abs(currentCell.x) - Mathf.Abs(targetCell.x));
-        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.z) - Mathf.Abs(targetCell.z));
+        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.y) - Mathf.Abs(targetCell.y));
+        switch (currentPiece.strengh)
+        {
+            case 1:
+            case 2: 
+            case 3:
+            case 4:
+                if (Mathf.Abs(currentCell.x - targetCell.x) > 1) return false;
+                if (Mathf.Abs(currentCell.y - targetCell.y) > 1) return false;
+                return true;
+            case 5: 
+            case 6: 
+            case 7: 
+            case 8:
+                if (xvalue != yvalue) return false;
+                break;
+            case 9:
+                if (targetCell.currentPiece != null && targetCell.currentPiece.strengh == 10) break;
+                if (xvalue != yvalue) return false;
+                break;
+            case 10: 
+                bool strongCell = (targetCell.x+targetCell.y)%2 == 0;
+                if (strongCell)
+                {
+                    if (xvalue != yvalue)
+                    {
+                        if (xvalue > 1) return false;
+                        if (yvalue > 1) return false;
+                    }
+                }
+                else
+                {
+                    if (Mathf.Abs(currentCell.x - targetCell.x) > 1) return false;
+                    if (Mathf.Abs(currentCell.y - targetCell.y) > 1) return false;
+                }
+                break;
+            default: return true;
+        }
+        return true;
+    }
+    public bool IsValidPass(Cell targetCell,Cell CurrentCell)
+    {
+        if(targetCell==null) return false;
+        if (!IsValidMove(targetCell,CurrentCell)) return false; 
+        Vector2 sub = new Vector2(0, 0);
+        sub.x = Mathf.Abs(currentCell.x - targetCell.x);
+        if(sub.x <= 1) return true;
+        
+        Vector2 addValue = new Vector2(0, 0);
+        addValue.x = (currentCell.x > targetCell.x) ? 1 : -1;
+        addValue.y = (currentCell.y > targetCell.y) ? 1 : -1;
+        switch (currentCell.currentPiece.strengh)
+        {
+            case 5: 
+            case 6: 
+            case 7: 
+            case 8:
+            case 9:
+            case 10:
+                Cell temp = BoardGame.instance.GetCell((targetCell.x + (int)addValue.x), (targetCell.y + (int)addValue.y));
+                print($"moving f:{temp.x}.{temp.y}t:{targetCell.x}.{targetCell.y}");
+                return IsValidPass(temp, currentCell);
+            default: return true;
+        }
 
+
+        return true;
+    }
+    public bool IsValidCapture(Cell targetCell,Cell CurrentCell)
+    {
+        BoardPiece targetPiece = targetCell.currentPiece;
+        if (targetPiece == null) return false;
+        if (targetPiece.controller == controller) return false;
+
+        int xvalue = Mathf.Abs(Mathf.Abs(currentCell.x) - Mathf.Abs(targetCell.x));
+        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.y) - Mathf.Abs(targetCell.y));
         if (xvalue > 1 || yvalue > 1) return false;
 
         if (targetPiece.strengh > strengh && targetPiece.strengh != 10) return false;
         if (strengh < 7 && targetPiece.strengh == 10) return false;
 
-
+        switch (strengh)
+        {
+            case 5: 
+            case 6: 
+            case 7: 
+            case 8:
+                if (xvalue != yvalue) return false;
+                break;
+            case 9:
+                if (targetCell.currentPiece.strengh != 10 && xvalue != yvalue) return false;
+                break;
+            default:
+                break;
+        }
         return true;
     }
 
-    public void SetMaterial(Material a, Material B)
-    {
-        pieceRenders.SetMaterial(a, B);
-        pieceRenders.ApplyMaterial(BoardRender.ItemSel.FistColor, isFirst);
-    }
+    
 }

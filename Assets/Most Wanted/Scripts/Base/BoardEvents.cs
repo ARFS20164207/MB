@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Most_Wanted.Scripts.Base;
+using Most_Wanted.Scripts.V2;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,10 +16,9 @@ public class BoardEvents : MonoBehaviour
     public UnityEvent<string> CustomEventString;
     public UnityEvent<int> CustomEventInt;
     public UnityEvent<bool> CustomEventBool;
-    public UnityEvent<BoardCell> OnSelected;
-    public UnityEvent<BoardCell,bool> OnHover;
-    public UnityEvent<BoardCell,bool> OnHoverExit;
-    public UnityEvent<MoveStats,bool> OnMove;
+    public UnityEvent<IPlayer, bool> OnPlayerTurn;
+    public UnityEvent<bool[,],BoardPiece> OnPosibleMoves;
+    public UnityEvent OnChangeTurn;
 
     // A built-in event that takes no parameters
     public UnityEvent DefaultEvent;
@@ -59,14 +60,14 @@ public class BoardEvents : MonoBehaviour
             default: InvokeVoid(eventName); break;
         }
     }
-    public void InvokeCell(BoardCustomEvents eventName, BoardCell parameter)
+    public void InvokeCell(BoardCustomEvents eventName, Cell parameter)
     {
         if (SendLogs) { Debug.Log(eventName + ": " + parameter); }
         switch (eventName)
         {
-            case BoardCustomEvents.OnSelected: Invoke(OnSelected, parameter); break;
-            case BoardCustomEvents.OnHover: Invoke(OnHover, parameter,true); break;
-            case BoardCustomEvents.OnHoverExit: Invoke(OnHoverExit, parameter,false); break;
+            //case BoardCustomEvents.OnSelected: Invoke(OnSelected, parameter); break;
+            //case BoardCustomEvents.OnHover: Invoke(OnHover, parameter,true); break;
+            //case BoardCustomEvents.OnHoverExit: Invoke(OnHoverExit, parameter,false); break;
             default: InvokeVoid(eventName); break;
         }
     }
@@ -75,7 +76,7 @@ public class BoardEvents : MonoBehaviour
         if (SendLogs) { Debug.Log(eventName + ": " + parameter + " & " + parameter2); }
         switch (eventName)
         {
-            case BoardCustomEvents.OnMove: Invoke(OnMove, parameter, parameter2); break;
+            //case BoardCustomEvents.OnMove: Invoke(OnMove, parameter, parameter2); break;
             default: InvokeVoid(eventName); break;
         }
     }
@@ -83,6 +84,7 @@ public class BoardEvents : MonoBehaviour
     {
         switch (eventName)
         {
+            case BoardCustomEvents.OnChangeTurn: OnChangeTurn.Invoke(); break;
             case BoardCustomEvents.DefaultEvent: DefaultEvent.Invoke(); break;
             // Otherwise, print an error message
             default: Debug.LogError("Invalid event name: " + eventName); break;
@@ -116,5 +118,6 @@ public class BoardEvents : MonoBehaviour
         OnSelected,
         OnHover,
         OnHoverExit,
-        OnMove
+        OnMove,
+        OnChangeTurn
     }

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BP_DiagonalWarrior : BoardPiece
-{
-    public override bool IsValidMove(BoardCell targetCell)
+{/*
+    public override bool IsValidMove(Cell targetCell)
     {
         if (!base.IsValidMove(targetCell)) return false;
 
         int xvalue = Mathf.Abs(Mathf.Abs(currentCell.x) - Mathf.Abs(targetCell.x));
-        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.z) - Mathf.Abs(targetCell.z));
+        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.y) - Mathf.Abs(targetCell.y));
 
         if (xvalue != yvalue) return false;
 
@@ -19,13 +19,13 @@ public class BP_DiagonalWarrior : BoardPiece
         return true;
     }
 
-    public override bool IsValidPass(BoardCell targetCell)
+    public override bool IsValidPass(Cell targetCell)
     {
 
         Vector2 addValue = new Vector2(0, 0);
         addValue.x = (currentCell.x > targetCell.x) ? 1 : -1;
-        addValue.y = (currentCell.z > targetCell.z) ? 1 : -1;
-        BoardCell temp = BoardGame.instance.board[targetCell.x + (int)addValue.x, targetCell.z + (int)addValue.y];
+        addValue.y = (currentCell.y > targetCell.y) ? 1 : -1;
+        Cell temp = BoardGame.instance.board[targetCell.x + (int)addValue.x, targetCell.y + (int)addValue.y];
 
         if (!base.IsValidPass(temp)) return false;
 
@@ -36,15 +36,15 @@ public class BP_DiagonalWarrior : BoardPiece
 
         return true;
     }
-    public override bool IsValidCapture(BoardCell targetCell)
+    public override bool IsValidCapture(Cell targetCell)
     {
         if (!base.IsValidCapture(targetCell)) return false;
 
         int xvalue = Mathf.Abs(Mathf.Abs(currentCell.x) - Mathf.Abs(targetCell.x));
-        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.z) - Mathf.Abs(targetCell.z));
+        int yvalue = Mathf.Abs(Mathf.Abs(currentCell.y) - Mathf.Abs(targetCell.y));
 
         if (xvalue != yvalue) return false;
 
         return true;
-    }
+    }*/
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Most_Wanted.Scripts.Base;
 using UnityEngine;
 [Serializable]
 public class MoveStats
@@ -8,33 +9,33 @@ public class MoveStats
     //the atacker moves to the defender an do the attack, id defender is null it is a pass
     public BoardPiece Atacker;
     public BoardPiece Defender;
-    public BoardCell from;
-    public BoardCell to;
+    public Cell from;
+    public Cell to;
     public MoveType movement;
 
 
 
-    public MoveStats(BoardCell from,BoardCell to)
+    public MoveStats(Cell from,Cell to)
     {
         this.from = from;
         this.to = to;
-        if (from != null) if (from.hasPiece) this.Atacker = from.currentPiece;
-        if (to != null) if (to.hasPiece) this.Defender = to.currentPiece;
+        if (from != null) if (from.currentPiece) this.Atacker = from.currentPiece;
+        if (to != null) if (to.currentPiece) this.Defender = to.currentPiece;
     }
-    public MoveStats(BoardCell from)
+    public MoveStats(Cell from)
     {
         this.from = from;
         this.to = null;
-        if (from != null) if (from.hasPiece) this.Atacker = from.currentPiece;
+        if (from != null) if (from.currentPiece) this.Atacker = from.currentPiece;
         this.Defender = null;
         this.movement = MoveType.Waiting;
     }
 
-    public MoveStats SetMovement(BoardCell to,MoveType moveType)
+    public MoveStats SetMovement(Cell to,MoveType moveType)
     {
         if (from == null) return null;
         this.to = to;
-        if (to != null) if (to.hasPiece) this.Defender = to.currentPiece;
+        if (to != null) if (to.currentPiece) this.Defender = to.currentPiece;
         this.movement = moveType;
         return this;
     }
@@ -51,10 +52,10 @@ public class MoveStats
     public string GetMoveInfo()
     {
         string result = "";
-        if(Atacker) result += Atacker.isFirst ? "X" : "O"; else result += "Null";
-        if(from) result += "(" + from.x +","+ from.z + ") -> "; else result += " - ";
-        if (Defender) result += Defender.isFirst ? "X" : "O"; else result += "";
-        if(to) result += "(" + to.x + "," + to.z + ") = "; else result += " - ";
+        if(Atacker) result += Atacker.controller.name; else result += "Null";
+        if(from!=null) result += "(" + from.x +","+ from.y + ") -> "; else result += " - ";
+        if (Defender) result += Defender.controller.name; else result += "";
+        if(to!=null) result += "(" + to.x + "," + to.y + ") = "; else result += " - ";
         result += movement;
 
 

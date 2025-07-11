@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardCell : MonoBehaviourPun
-{
+{/*
     [HideInInspector] public int x;
     [HideInInspector] public int z;
     public bool hasPiece
@@ -47,5 +47,5 @@ public class BoardCell : MonoBehaviourPun
         this.z = z;
     }
 
-
+*/
 }

@@ -38,11 +38,11 @@ public class MatchMaking : MonoBehaviourPunCallbacks
 
         BoardPlayer boardPlayer = go.GetComponent<BoardPlayer>();
         if (boardPlayer == null) return;
-        BoardTeam boardTeam = boardPlayer.myTeam;
+        Profile boardTeam = boardPlayer.myTeam;
         DontDestroyOnLoad(boardPlayer.gameObject);
         boardTeam.myTeam = PhotonNetwork.IsMasterClient ? BTeams.Fist : BTeams.Second;
         boardPlayer.name = "Player No. " + PhotonNetwork.LocalPlayer.ActorNumber + " : " + PhotonNetwork.LocalPlayer.NickName;
-        boardTeam.profileName = boardPlayer.name;
+        boardTeam.nickname = boardPlayer.name;
         boardPlayer.ID = PhotonNetwork.LocalPlayer.ActorNumber;
 
 
@@ -79,11 +79,11 @@ public class MatchMaking : MonoBehaviourPunCallbacks
             if (player.photonView.Owner == actor) boardPlayer = player;
         }
         if (boardPlayer == null) return;
-        BoardTeam boardTeam = boardPlayer.myTeam;
+        Profile boardTeam = boardPlayer.myTeam;
         DontDestroyOnLoad(boardPlayer.gameObject);
         boardTeam.myTeam = actor.IsMasterClient ? BTeams.Fist : BTeams.Second;
         boardPlayer.name = "Player No. " + actor.ActorNumber + " : " + actor.NickName;
-        boardTeam.profileName = boardPlayer.name;
+        boardTeam.nickname = boardPlayer.name;
         boardPlayer.ID = actor.ActorNumber;
     }
     [PunRPC]

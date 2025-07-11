@@ -8,7 +8,7 @@ using Photon.Realtime;
 public class BoardPlayer : MonoBehaviourPun, IPunObservable
 {
     public Player player;
-    public BoardTeam myTeam;
+    public Profile myTeam;
     public int ID = 0;
 
 

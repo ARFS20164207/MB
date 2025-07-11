@@ -1,177 +1,223 @@
-using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Sockets;
+using Most_Wanted.Scripts.V2;
+using Photon.Pun;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
-public class BoardGame : MonoBehaviourPun
+namespace Most_Wanted.Scripts.Base
 {
-    public List<BoardPiece> piecesA = new List<BoardPiece>();
-    public List<BoardPiece> piecesB = new List<BoardPiece>();
-    public List<BoardPlayer> teams = new List<BoardPlayer>();
-    public BoardPlayer localPlayer = null;
-    public Stack<MoveStats> gameHistory = new Stack<MoveStats>();
-    public MoveStats currentPlay = new MoveStats(null);
-    public bool isWhiteTurn = true;
-    public bool gameOver = false;
-    public bool MovePreview = false;
-
-    public BoardPiece selectedPiece;
-    public BoardCell selectedCell;
-
-    [SerializeField] Transform containerCell;
-    [SerializeField] Transform containerPieceA;
-    [SerializeField] Transform containerPieceB;
-
-    public Vector2 gridSize = new(1, 1);
-    public Vector2 boardSize = new Vector2((int)8, (int)8);
-    public BoardCell[,] board = new BoardCell[9, 7];
-
-    [SerializeField] GameTheme gameTheme;
-
-    public static BoardGame instance;
-
-    private void Awake()
+    [Serializable]
+    public class Cell
     {
-        if (instance == null)
-        {
-            instance = this;
-        }
-        else if (instance != this)
-        {
-            Destroy(gameObject);
-        }
+        public int x;
+        [FormerlySerializedAs("z")] public int y;
+        public int piece = -1;
+        public int team;
+        public BoardPiece currentPiece;
+        public Vector3 position;
     }
 
-    void Start()
+    public class BoardGame : MonoBehaviourPun, IController
     {
+        public List<BoardPlayer> teams = new List<BoardPlayer>();
+        public BoardPlayer localPlayer;
+        public Stack<MoveStats> GameHistory = new Stack<MoveStats>();
+        public MoveStats currentPlay = new MoveStats(null);
+        public bool gameOver;
 
-        if ((PhotonNetwork.IsMasterClient && PhotonNetwork.IsConnected) ||
-            !PhotonNetwork.IsConnected)
+        public Cell[,] board = new Cell[9, 7];
+        public IPlayer player1;
+        public IPlayer player2;
+
+        public int boardValue;
+        public BoardMAp defaultMap;
+        public GameObject worldContext;
+        [SerializeField] GameTheme gameTheme;
+
+        public static BoardGame instance;
+
+        private void Awake()
         {
-            StartCoroutine(Initialize());
-        }
-            InitializeBoardCell();
-            if (MatchStats.instance != null)
-                localPlayer = MatchStats.instance.GetLocalPlayer();
-    }
-    
-   
-    [ContextMenu("UndoAction")]
-    public void UndoAction()
-    {
-        if (gameHistory.Count == 0) return;
-        MoveStats last = gameHistory.Pop();
-        last.Atacker.MovePieceUndo(last.from, last.Defender);
-    }
-    public void DoAction(MoveStats newAction)
-    {
-        if (gameHistory == null) return;
-        gameHistory.Push(newAction);
-        newAction.Atacker.MovePiece(newAction.to);
-    }
-
-    #region GameBuilder
-    IEnumerator Initialize()
-    {
-        yield return new WaitForEndOfFrame();
-        //1InitializeBoard();
-
-    }
-    public void GetBoard()
-    {
-        if (containerCell == null)
-        {
-            board = new BoardCell[(int)boardSize.x, (int)boardSize.y];
-            return;
-        }
-
-        if (containerCell.childCount != (int)boardSize.x * (int)boardSize.y)
-        {
-            board = new BoardCell[(int)boardSize.x, (int)boardSize.y];
-            return;
-        }
-
-        for (int i = 0; i < boardSize.x; i++)
-            for (int j = 0; j < boardSize.y; j++)
-            {   board[i, j] = containerCell.GetChild((i * (int)boardSize.y) + j).GetComponent<BoardCell>();
-                board[i, j].SetMaterial(gameTheme.ColorATable, gameTheme.ColorBTable);
+            if (instance == null)
+            {
+                instance = this;
             }
-    }
-
-    [ContextMenu("StartCells")]
-    public void InitializeBoardCell()
-    {
-        try
-        {
-            if (board[(int)boardSize.x - 1, (int)boardSize.y - 1] == null)
+            else if (instance != this)
             {
-                GetBoard();
-                Debug.LogError("El Mapa de celdas no estaba configurado");
-            }else
-            {
-                print(board[(int)boardSize.x - 1, (int)boardSize.y - 1].name);
+                Destroy(gameObject);
             }
         }
-        catch (System.Exception)
+
+        void Start()
         {
             GetBoard();
-            Debug.LogError("El Mapa de celdas no estaba configurado");
-        }
-        /*for (int i = 0; i < boardSize.x; i++)
-        {
-            for (int j = 0; j < boardSize.y; j++)
+            BoardEvents.Instance.OnPlayerTurn.AddListener(OnPlayerTurn);
+            int first = UnityEngine.Random.Range(0, 2);
+            OnPlayerTurn((first == 0)? player1 : player2,true);
+            if ((PhotonNetwork.IsMasterClient && PhotonNetwork.IsConnected) ||
+                !PhotonNetwork.IsConnected)
             {
-                if (board[i, j] == null)
-                { board[i, j] = Instantiate(gameTheme.prefabCell, new Vector3(gridSize.x * i, containerCell.position.y, gridSize.y * j), Quaternion.Euler(90, 0, 0), containerCell).GetComponent<BoardCell>(); }
+                StartCoroutine(Initialize());
+            }
+
+            if (MatchStats.instance != null)
+                localPlayer = MatchStats.instance.GetLocalPlayer();
+        }
+
+        public void OnPlayerTurn(IPlayer player, bool state)
+        {
+            player.canPlay = state;
+            if (player != player1) player1.canPlay = !state;
+            if (player != player2) player2.canPlay = !state;
+            //if(!state)ChangeTurn();
+        }
+
+        public void CalculateBoardValue()
+        {
+            boardValue = 0;
+            foreach (var item in player1.pieces)
+            {
+                if (item.gameObject.activeInHierarchy) boardValue += item.strengh ^ 2;
                 else
                 {
-                    board[i, j].transform.position = new Vector3(gridSize.x * i, containerCell.position.y, gridSize.y * j);
-                    board[i, j].transform.rotation = Quaternion.Euler(90, 0, 0);
-                    board[i, j].transform.parent = containerCell;
+                    if (item.strengh == 10) gameOver = true;
                 }
-                board[i, j].cellColor = ((i + j) % 2) == 1;
-                board[i, j].SetCoordinates(i, j);
-                board[i, j].gameObject.name = "Cell <" + (i + 1) + "H/" + (j + 1) + "V>";
-                board[i, j].SetMaterial(gameTheme.ColorATable, gameTheme.ColorBTable);
             }
-        }*/
-    }
+
+            foreach (var item in player2.pieces)
+            {
+                if (item.gameObject.activeInHierarchy) boardValue -= item.strengh ^ 2;
+                else
+                {
+                    if (item.strengh == 10) gameOver = true;
+                }
+            }
+
+            if (gameOver)
+            {
+                //BoardEvents.Instance.InvokeVoid(BoardCustomEvents.OnGameOver);
+                LocalPlayerStats.instance.coin2 += Math.Abs(boardValue);
+                SceneManager.LoadScene("0-Login");
+            }
+        }
+
+        [ContextMenu("UndoAction")]
+        public void UndoAction()
+        {
+            if (GameHistory.Count == 0) return;
+            MoveStats last = GameHistory.Pop();
+            //last.Atacker.MovePieceUndo(last.from, last.Defender);
+        }
+
+        public void DoAction(MoveStats newAction)
+        {
+            if (GameHistory == null) return;
+            GameHistory.Push(newAction);
+        }
+
+        #region GameBuilder
+
+        IEnumerator Initialize()
+        {
+            yield return new WaitForEndOfFrame();
+            //1InitializeBoard();
+        }
+
+        public void GetBoard()
+        {
+            board = new Cell[9, 7];
+            for (int i = 0; i < 9; i++)
+            for (int j = 0; j < 7; j++)
+            {
+                board[i, j] = new Cell();
+            }
+
+            ITableWorld world;
+            worldContext.TryGetComponent(out world);
+            player1.SetActivePieces(false);
+            player2.SetActivePieces(false);
+            for (int i = 0; i < 9; i++)
+            {
+                //board[i, 0].currentPiece = player1.pieces[i];
+                //board[i, 0].currentPiece.SetObjectNumeration(defaultMap.row1Bteam[i]);;
+                //board[i, 0].currentPiece.transform.position = world.CellToWorld(1, 0);
+                LinkCellPiece(i, 0, player1, defaultMap.row1Ateam, world);
+                LinkCellPiece(i, 1, player1, defaultMap.row2Ateam, world);
+                LinkCellPiece(i, 2, player1, defaultMap.row3Ateam, world);
+                LinkCellPiece(i, 4, player2, defaultMap.row5Bteam, world);
+                LinkCellPiece(i, 5, player2, defaultMap.row6Bteam, world);
+                LinkCellPiece(i, 6, player2, defaultMap.row7Bteam, world);
+            }
+        }
+
+        void LinkCellPiece(int index, int jndex, IPlayer player, int[] row, ITableWorld world)
+        {
+            if (row[index] <= 0) return;
+            board[index, jndex].currentPiece = player.GetPiece();
+            board[index, jndex].currentPiece.gameObject.SetActive(true);
+            board[index, jndex].currentPiece.gameObject.name =
+                $"{player.name}:<{index + 1}-{jndex + 1}> Str:{row[index]}";
+            board[index, jndex].currentPiece.transform.rotation = player.transform.rotation;
+            board[index, jndex].currentPiece.SetObjectNumeration(row[index]);
+            board[index, jndex].currentPiece.transform.position = world.CellToWorld(index + 1, jndex + 1);
+            board[index, jndex].currentPiece.currentCell = board[index, jndex];
+            board[index, jndex].currentPiece.controller= player;
+        }
+
+        public Cell GetCell(int x, int y)
+        {
+            return board[x - 1, y - 1];
+        }
+
+        public Cell GetCell(Vector2 position)
+        {
+            return board[-1 + (int)position.x, -1 + (int)position.y];
+        }
+
+/*
     BoardPiece SetPiece(GameObject prefab, int x, int z, bool isWhite = true, int strenghValue = 0)
     {
         if (x < 0 || z < 0) return null;
-        if (x >= boardSize.x || z >= boardSize.y) return null;
+        if (x >= 9|| z >= 7) return null;
         BoardPiece pieza = null;
         GameObject go = null;
         Transform container = isWhite ? containerPieceA : containerPieceB;
 
         if (PhotonNetwork.IsConnected)
         {
-            go = PhotonNetwork.Instantiate(prefab.name, new Vector3(gridSize.x * x, container.position.y, gridSize.y * z), container.rotation);
+            go = PhotonNetwork.Instantiate(prefab.name,
+                new Vector3(gridSize.x * x, container.position.y, gridSize.y * z), container.rotation);
             pieza = go.GetComponent<BoardPiece>();
         }
         else
-            pieza = Instantiate(prefab, new Vector3(gridSize.x * x, container.position.y, gridSize.y * z), container.rotation, container).GetComponent<BoardPiece>();
+            pieza = Instantiate(prefab, new Vector3(gridSize.x * x, container.position.y, gridSize.y * z),
+                container.rotation, container).GetComponent<BoardPiece>();
 
 
         if (PhotonNetwork.IsConnected && localPlayer != null)
         {
             pieza = SetLocalPieceRPC(pieza, x, z, isWhite, strenghValue);
-            localPlayer.photonView.RPC("SetPieceRPC", RpcTarget.Others, pieza.photonView.ViewID, x, z, isWhite, strenghValue);
+            localPlayer.photonView.RPC("SetPieceRPC", RpcTarget.Others, pieza.photonView.ViewID, x, z, isWhite,
+                strenghValue);
         }
         else
             pieza = SetLocalPieceRPC(pieza, x, z, isWhite, strenghValue);
 
         return pieza;
-    }
-    [PunRPC]
+    }*/
+
+        /*[PunRPC]
     BoardPiece SetPieceRPC(int viewID, int x, int z, bool isWhite = true, int strenghValue = 0)
     {
         BoardPiece pieza = PhotonView.Find(viewID).gameObject.GetComponent<BoardPiece>();
 
-        return SetLocalPieceRPC(pieza,x,z,isWhite,strenghValue);
-    }
-    BoardPiece SetLocalPieceRPC(BoardPiece pieza, int x, int z, bool isWhite = true, int strenghValue = 0)
+        return SetLocalPieceRPC(pieza, x, z, isWhite, strenghValue);
+    }*/
+
+        /* BoardPiece SetLocalPieceRPC(BoardPiece pieza, int x, int z, bool isWhite = true, int strenghValue = 0)
     {
         pieza.transform.parent = isWhite ? containerPieceA : containerPieceB;
         pieza.isFirst = isWhite;
@@ -183,111 +229,99 @@ public class BoardGame : MonoBehaviourPun
         pieza.gameObject.name = "P" + pieza.strengh + "<" + x + "-" + z + "> :" + (pieza.isFirst ? "A" : "B");
         try
         {
-            Debug.Log($"Set Piece {pieza.gameObject.name}: finished -> the cell in{board[x, z].name}");
+            //Debug.Log($"Set Piece {pieza.gameObject.name}: finished -> the cell in{board[x, z].name}");
         }
         catch (System.Exception)
         {
             Debug.LogError($"Set Piece {pieza.gameObject.name}: Failed -> the cell in is null");
         }
+
         return pieza;
-    }
-    public void InitializeBoard()
-    {
-        int PlayerABackLine = 0;
-        int PlayerAFrontLine = 1;
-        int PlayerBBackLine = 6;
-        int PlayerBFrontLine = 5;
+    }*/
 
-        // Crea las piezas y las posiciona en el tablero
-        // Add white pieces
-        piecesA.Add(SetPiece(gameTheme.prefabPiece1.gameObject, 0, PlayerAFrontLine, isWhite: true, 1));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece2.gameObject, 1, PlayerAFrontLine, isWhite: true, 2));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece3.gameObject, 2, PlayerAFrontLine, isWhite: true, 3));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece4.gameObject, 3, PlayerAFrontLine, isWhite: true, 4));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece4.gameObject, 4, PlayerAFrontLine, isWhite: true, 4));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece4.gameObject, 5, PlayerAFrontLine, isWhite: true, 4));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece3.gameObject, 6, PlayerAFrontLine, isWhite: true, 3));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece2.gameObject, 7, PlayerAFrontLine, isWhite: true, 2));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece1.gameObject, 8, PlayerAFrontLine, isWhite: true, 1));
+        #endregion
 
-        piecesA.Add(SetPiece(gameTheme.prefabPiece5.gameObject, 0, PlayerABackLine, isWhite: true, 5));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece6.gameObject, 1, PlayerABackLine, isWhite: true, 6));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece7.gameObject, 2, PlayerABackLine, isWhite: true, 7));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece9.gameObject, 3, PlayerABackLine, isWhite: true, 9));
-        piecesA.Add(SetPiece(gameTheme.prefabPieceMB.gameObject, 4, PlayerABackLine, isWhite: true, 10));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece8.gameObject, 5, PlayerABackLine, isWhite: true, 8));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece7.gameObject, 6, PlayerABackLine, isWhite: true, 7));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece6.gameObject, 7, PlayerABackLine, isWhite: true, 6));
-        piecesA.Add(SetPiece(gameTheme.prefabPiece5.gameObject, 8, PlayerABackLine, isWhite: true, 5));
-
-        // Add Black pieces
-        piecesB.Add(SetPiece(gameTheme.prefabPiece1.gameObject, 0, PlayerBFrontLine, isWhite: false, 1));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece2.gameObject, 1, PlayerBFrontLine, isWhite: false, 2));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece3.gameObject, 2, PlayerBFrontLine, isWhite: false, 3));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece4.gameObject, 3, PlayerBFrontLine, isWhite: false, 4));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece4.gameObject, 4, PlayerBFrontLine, isWhite: false, 4));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece4.gameObject, 5, PlayerBFrontLine, isWhite: false, 4));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece3.gameObject, 6, PlayerBFrontLine, isWhite: false, 3));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece2.gameObject, 7, PlayerBFrontLine, isWhite: false, 2));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece1.gameObject, 8, PlayerBFrontLine, isWhite: false, 1));
-
-        piecesB.Add(SetPiece(gameTheme.prefabPiece5.gameObject, 0, PlayerBBackLine, isWhite: false, 5));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece6.gameObject, 1, PlayerBBackLine, isWhite: false, 6));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece7.gameObject, 2, PlayerBBackLine, isWhite: false, 7));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece9.gameObject, 3, PlayerBBackLine, isWhite: false, 9));
-        piecesB.Add(SetPiece(gameTheme.prefabPieceMB.gameObject, 4, PlayerBBackLine, isWhite: false, 10));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece8.gameObject, 5, PlayerBBackLine, isWhite: false, 8));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece7.gameObject, 6, PlayerBBackLine, isWhite: false, 7));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece6.gameObject, 7, PlayerBBackLine, isWhite: false, 6));
-        piecesB.Add(SetPiece(gameTheme.prefabPiece5.gameObject, 8, PlayerBBackLine, isWhite: false, 5));
-    }
-    #endregion
-
-    //selector Method
-    public void SelectPiece(BoardCell cell)
-    {
-        selectedPiece = cell.currentPiece;
-        selectedCell = cell;
-        if (selectedPiece) selectedPiece.SelectPiece();
-        SetTableMoves(cell);
-    }
-    void SetTableMoves(BoardCell cellOrigin)
-    {
-        if (!cellOrigin.hasPiece) return;
-        bool[,] moves = cellOrigin.currentPiece.PossibleMoves(instance.board);
-        for (int i = 0; i < moves.GetLength(0); i++)
+        void SetTableMoves(Cell cellOrigin)
+        {
+            if (!cellOrigin.currentPiece) return;
+            bool[,] moves = new bool[9,7];
+            for (int i = 0; i < moves.GetLength(0); i++)
             for (int j = 0; j < moves.GetLength(1); j++)
             {
-                BoardCell cell = instance.board[i, j];
-                if (cell.hasPiece && moves[i, j])
-                    cell.currentPiece.CheckPiece();
-                else if (!cell.hasPiece && moves[i, j])
-                    cell.SetIndicatorMaterial(moves[i, j]);
+                Cell cell = instance.board[i, j];
+               
+                //else if (!cell.currentPiece && moves[i, j])
+                // cell.SetIndicatorMaterial(moves[i, j]);
             }
-    }
-    void ClearTable()
-    {
-        for (int i = 0; i < instance.board.GetLength(0); i++)
+        }
+
+        void ClearTable()
+        {
+            for (int i = 0; i < instance.board.GetLength(0); i++)
             for (int j = 0; j < instance.board.GetLength(1); j++)
             {
-                BoardCell cell = instance.board[i, j];
-                cell.SetIndicatorMaterial(false);
-                if (cell.hasPiece)
+                Cell cell = instance.board[i, j];
+                if (cell.currentPiece)
                     cell.currentPiece.UncheckPiece();
             }
-        MovePreview = false;
-    }
 
-    public void DeselectPiece()
-    {
-        if (selectedPiece) selectedPiece.DiselectPiece();
-        selectedPiece = null;
-        selectedCell = null;
-        ClearTable();
-    }
+        }
 
-    public void ChangeTurn()
-    {
-        isWhiteTurn = !isWhiteTurn;
+
+        public void ChangeTurn()
+        {
+            player1.canPlay = !player1.canPlay;
+            player2.canPlay = !player2.canPlay;
+            BoardEvents.Instance.InvokeVoid(BoardCustomEvents.OnChangeTurn);
+        }
+
+
+        public bool isTurn(IPlayer player)
+        {
+            if (player1 == player) return player1.canPlay;
+            if (player2 == player) return player2.canPlay;
+            return false;
+        }
+
+        public bool TableInteract(Vector2 cellCoordinates)
+        {
+            Cell move = GetCell(cellCoordinates);
+            if (isTurn(player1))
+            {
+                print("P1-turn");
+                player1.OnInteraction(move, player1.selectedCell);
+            }
+            else if (isTurn(player2))
+            {
+                print("P2-turn");
+                player2.OnInteraction(move, player2.selectedCell);
+            }
+
+            return true;
+        }
+
+        public bool CellReference(Vector2 cellCoordinates, Vector3 worldPosition)
+        {
+            Cell temp = GetCell(cellCoordinates);
+            if (temp == null) return false;
+            temp.position = worldPosition;
+            temp.x = (int)cellCoordinates.x;
+            temp.y = (int)cellCoordinates.y;
+            return true;
+        }
+        public bool[,] PossibleMoves(Cell[,] table,IPlayer player)
+        {
+            bool[,] moves = new bool[9,7];
+            for (int i = 0; i < 9; i++)
+                for (int j = 0; j < 7; j++)
+                {
+                    if (table[i, j].currentPiece)
+                        moves[i, j] = player.selectedPiece.IsValidCapture(table[i, j],player.selectedCell);
+                    else
+                        moves[i, j] = player.selectedPiece.IsValidMove(table[i, j],player.selectedCell);
+                }
+            
+            return moves;
+        }
     }
 }

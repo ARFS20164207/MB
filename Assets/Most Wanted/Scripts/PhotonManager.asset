@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 025eb323c428df24ebfe60d64448dd36, type: 3}
   m_Name: PhotonManager
   m_EditorClassIdentifier: 
-  connectOnStart: 1
+  connectOnStart: 0

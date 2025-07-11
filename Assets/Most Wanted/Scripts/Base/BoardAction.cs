@@ -4,13 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BoardAction : MonoBehaviourPun
-{
+{/*
     // Start is called before the first frame update
     void Start()
     {
         BoardEvents.Instance.OnHover.AddListener(OnHoverCell);
         BoardEvents.Instance.OnHoverExit.AddListener(OnHoverCell);
         BoardEvents.Instance.OnSelected.AddListener(SelectCell);
+        BoardEvents.Instance.OnChangeTurn.AddListener(UptateTurn);
+        BoardEvents.Instance.OnChangeTurn.AddListener(BoardGame.instance.CalculateBoardValue);
     }
 
 
@@ -29,17 +31,25 @@ public class BoardAction : MonoBehaviourPun
             else if (BoardGame.instance.selectedPiece != null && cell.currentPiece.isFirst != BoardGame.instance.isWhiteTurn)
                 cell.cellRenders.GetRendMaterialByID(BoardRender.ItemSel.Common).SetColorToAll(cell.mouseOverColor);
         }
+    }public void UptateTurn()
+    {
+        if (PhotonNetwork.IsConnected)
+        {
+            if (MatchStats.instance.GetLocalPlayer().myTeam.isTurn == BoardGame.instance.isWhiteTurn) return;
+            if (MatchStats.instance.GetOnlinePlayer().myTeam.isTurn == !BoardGame.instance.isWhiteTurn) return;
+        }
+        else
+        {
+            ProfileManage.instance.GetProfile(0).isTurn = BoardGame.instance.isWhiteTurn;
+            ProfileManage.instance.GetProfile(1).isTurn = !BoardGame.instance.isWhiteTurn;
+        }
     }
     public void SelectCell(BoardCell cell)
     {
         if (BoardGame.instance.gameOver) return;
 
         if (cell == null) return;
-        if (PhotonNetwork.IsConnected && false)
-        {
-            if (MatchStats.instance.GetLocalPlayer().myTeam.myTurn == BoardGame.instance.isWhiteTurn) return;
-            if (MatchStats.instance.GetOnlinePlayer().myTeam.myTurn == !BoardGame.instance.isWhiteTurn) return;
-        }
+        
 
         if (BoardGame.instance.selectedPiece == null && !cell.hasPiece) { return; }
         if (BoardGame.instance.selectedPiece == cell.currentPiece) { BoardGame.instance.DeselectPiece(); return;}
@@ -51,7 +61,8 @@ public class BoardAction : MonoBehaviourPun
             int to = newAction.to.photonView.ViewID;
             int from = newAction.from.photonView.ViewID;
             BoardGame.instance.DoAction(newAction);
-            photonView.RPC(nameof(DoActionOnline), RpcTarget.Others,to,from);
+            if (PhotonNetwork.IsConnected)
+                photonView.RPC(nameof(DoActionOnline), RpcTarget.Others,to,from);
             PrintStack();
             BoardGame.instance.DeselectPiece();
             return;
@@ -71,7 +82,8 @@ public class BoardAction : MonoBehaviourPun
                 int to = newAction.to.photonView.ViewID;
                 int from = newAction.from.photonView.ViewID;
                 BoardGame.instance.DoAction(newAction);
-                photonView.RPC(nameof(DoActionAtkOnline), RpcTarget.Others, to, from);
+                if(PhotonNetwork.IsConnected)
+                    photonView.RPC(nameof(DoActionAtkOnline), RpcTarget.Others, to, from);
                 PrintStack();
             }
             BoardGame.instance.DeselectPiece();
@@ -109,5 +121,5 @@ public class BoardAction : MonoBehaviourPun
         atk.SetMovement(to, MoveStats.MoveType.SucessAttack);
         BoardGame.instance.DoAction(atk);
 
-    }
+    }*/
 }

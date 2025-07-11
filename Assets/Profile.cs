@@ -7,6 +7,7 @@ public class Profile : MonoBehaviourPun
 {
     public string nickname;
     public Sprite picture;
+    public BTeams myTeam;
     public bool isTurn;
     public int Team;
 
@@ -14,14 +15,23 @@ public class Profile : MonoBehaviourPun
     // Start is called before the first frame update
     void Start()
     {
-        nickname = photonView.Owner.NickName;
-        
-        if ( nickname == "")
-        {
-            photonView.Owner.NickName = "Player " + Random.Range(10001, 99999);
-            nickname = photonView.Owner.NickName;
-        }
-        OnlineProfiles.instance.profiles.Add(this);
+        GetInstanceProfileManage();
     }
-
+    private void GetInstanceProfileManage()
+    {
+        try
+        {
+            ProfileManage.instance.AddProfile(this);
+        }
+        catch (System.Exception)
+        {
+            Invoke(nameof(GetInstanceProfileManage), 1);
+            throw;
+        }
+    }
+}
+public enum BTeams
+{
+    Fist = 0,
+    Second = 1
 }

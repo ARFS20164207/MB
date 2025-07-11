@@ -9,6 +9,9 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager instance;
     [Header("Center")]
+    [Header("Left")]
+    [SerializeField] TextMeshProUGUI txtCoin1;
+    [SerializeField] TextMeshProUGUI txtCoin2;
     [Header("-Lobby")]
     [SerializeField] Button btnOnline;
     [Header("Down")]
@@ -28,6 +31,12 @@ public class UIManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+    public void SetCoin(int coin1, int coin2)
+    {
+        if (txtCoin1 == null || txtCoin2 == null) { return; }
+        txtCoin1.text = coin1.ToString();
+        txtCoin2.text = coin2.ToString();
     }
 
     public void PrintLog(string state, string context, string description)

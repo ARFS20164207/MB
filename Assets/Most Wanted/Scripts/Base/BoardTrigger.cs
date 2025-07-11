@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Most_Wanted.Scripts.Base;
 using UnityEngine;
 
 public class BoardTrigger : MonoBehaviour
 {
-    public BoardCell cell;
+    public Cell cell;
 
     private void OnMouseEnter() => BoardEvents.Instance.InvokeCell(BoardCustomEvents.OnHover, cell);
     private void OnMouseExit() => BoardEvents.Instance.InvokeCell(BoardCustomEvents.OnHoverExit, cell);
@@ -14,11 +15,11 @@ public class BoardTrigger : MonoBehaviour
     {
         try
         {
-            cell.name += "";
+            //cell.name += "";
         }
         catch (System.Exception)
         {
-            cell = GetComponent<BoardCell>();
+            cell = GetComponent<Cell>();
             throw;
         }
     }

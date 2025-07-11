@@ -621,7 +621,7 @@ namespace Hierarchy2
 
                 ElementEvent(rowItem);
 
-                FINISH:
+            FINISH:
                 if (settings.displayGrid)
                     DisplayGrid();
 
@@ -1413,7 +1413,7 @@ namespace Hierarchy2
 
         bool IsFirstRow(Rect rect) => rect.y / rect.height == 0;
 
-        int GetRowIndex(Rect rect) => (int) (rect.y / rect.height);
+        int GetRowIndex(Rect rect) => (int)(rect.y / rect.height);
 
         bool InSelection(int ID) => Selection.Contains(ID) ? true : false;
 
@@ -1650,8 +1650,8 @@ namespace Hierarchy2
                     {
                         alphaTexture = new Texture2D(16, 16, TextureFormat.RGBA32, false);
                         for (int x = 0; x < 16; ++x)
-                        for (int y = 0; y < 16; ++y)
-                            alphaTexture.SetPixel(x, y, Color.clear);
+                            for (int y = 0; y < 16; ++y)
+                                alphaTexture.SetPixel(x, y, Color.clear);
                         alphaTexture.Apply();
                     }
 
@@ -1743,7 +1743,8 @@ namespace Hierarchy2
                 border = new RectOffset(12, 12, 8, 8),
             };
 
-            [System.Obsolete] internal static GUIStyle DirtyLabel = new GUIStyle(EditorStyles.label)
+            [System.Obsolete]
+            internal static GUIStyle DirtyLabel = new GUIStyle(EditorStyles.label)
             {
                 padding = new RectOffset(-1, 0, 0, 0),
                 margin = new RectOffset(0, 0, 0, 0),
@@ -1754,7 +1755,7 @@ namespace Hierarchy2
             internal static GUIStyle Header = new GUIStyle(TreeBoldLabel)
             {
                 richText = true,
-                normal = new GUIStyleState() {textColor = Color.white}
+                normal = new GUIStyleState() { textColor = Color.white }
             };
 
             internal static GUIStyle TreeBoldLabel
@@ -1765,7 +1766,7 @@ namespace Hierarchy2
             internal static GUIStyle TreeLabel = new GUIStyle(UnityEditor.IMGUI.Controls.TreeView.DefaultStyles.label)
             {
                 richText = true,
-                normal = new GUIStyleState() {textColor = Color.white}
+                normal = new GUIStyleState() { textColor = Color.white }
             };
         }
 
